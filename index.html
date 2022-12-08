@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <h1>CRUD Operations</h1>
+    <div id="demo">
+        <h2>Table of Cars</h2>
+    </div>
+
+    <table id="table">
+        <tr class="headings">
+            <th onclick="sortTableAsNum(0)">ID</th>
+            <th onclick="sortTable(1)">Brand</th>
+            <th onclick="sortTable(2)">Model</th>
+        </tr>
+        <tbody id="mytable">
+
+        </tbody>
+    </table>
+    <div class="form-popup" id="myForm">
+        <form action="" class="form-container">
+            <h1 id="formTitle">Edit Car Details</h1>
+
+            <label for="id" id="labelId"><b>ID</b></label>
+            <input type="number" placeholder="Enter ID" name="id" id="formId" required min="1"><br><br>
+
+            <label for="brand"><b>Brand</b></label>
+            <input type="text" placeholder="Enter Brand" name="brand" required>
+
+            <label for="model"><b>Model</b></label>
+            <input type="text" placeholder="Enter Model" name="model" required>
+
+            <button type="submit" id="submitBtn" class="btn">Confirm</button>
+
+            <button type="button" class="btncancel">Cancel</button>
+        </form>
+    </div>
+
+    <div class="form-popup" id="addForm">
+        <form action="" class="form-container">
+            <h1 id="formTitle">Add New Car</h1>
+
+
+            <label for="brand"><b>Brand</b></label>
+            <input type="text" placeholder="Enter Brand" name="brand" required>
+
+            <label for="model"><b>Model</b></label>
+            <input type="text" placeholder="Enter Model" name="model" required>
+
+            <button type="submit" class="btn">Confirm</button>
+
+            <button type="button" class="btncancel">Cancel</button>
+        </form>
+    </div>
+
+
+    <div class="form-popup" id="deleteForm">
+        <form action="" class="form-container">
+            <h1 id="formTitle">Delete Entry</h1>
+
+
+            <label for="id" ><b>ID</b></label>
+            <input type="number" placeholder="Enter ID" name="id" id="deleteId" required min="1"><br><br>
+
+            <button type="submit" class="btn">Confirm</button>
+
+            <button type="button" class="btncancel">Cancel</button>
+        </form>
+    </div>
+
+    <button type="button" id="btn" class="edit">Edit</button>
+    <button type="button" id="btn" class="add">Add</button>
+    <button type="button" id="btn" class="delete">Delete</button>
+    <script>
+        let count = 0;
+        $(document).ready(function () {
+
+            $.get("http://localhost:3000/", function (data, status) {
+
+                createTable(data);
+
+            });
+
+            $(".edit").click(function () {
+                document.getElementById("formId").max = count;
+                $("#myForm").show();
+
+            });
+
+            $(".btncancel").click(function () {
+                $("#myForm").hide();
+                $("#addForm").hide();
+                $("#deleteForm").hide();
+            });
+
+            $(".add").click(function () {
+                $("#addForm").show();
+            });
+            $(".delete").click(function () {
+                document.getElementById("deleteId").max = count;
+                $("#deleteForm").show();
+            });
+        });
+
+
+
+
+        function createTable(data) {
+            var table = document.getElementById('mytable');
+            count = data.length;
+
+            for (var i = 0; i < data.length; i++) {
+                var j = i + 1;
+
+                var row = `<tr>
+                                   <td id = "id${j}">${data[i].id}</td>
+                                   <td id = "brand${j}">${data[i].brand}</td>
+                                   <td id = "model${j}">${data[i].model}</td>
+                                   
+                               </tr>`
+                table.innerHTML += row;
+            }
+        }
+
+        function updateTable(data) {
+            var table = document.getElementById('mytable');
+
+            var rowNum = data[0].id;
+            document.getElementById("id" + rowNum).innerHTML = data[0].id;
+            document.getElementById("brand" + rowNum).innerHTML = data[0].brand;
+            document.getElementById("model" + rowNum).innerHTML = data[0].model;
+            $("#myForm").hide();
+
+        }
+
+        function addRow(data) {
+            var table = document.getElementById('mytable');
+            var j = data[0].id;
+
+            var row = `<tr>
+                                   <td id = "id${j}">${data[0].id}</td>
+                                   <td id = "brand${j}">${data[0].brand}</td>
+                                   <td id = "model${j}">${data[0].model}</td>
+                                   
+                               </tr>`
+            table.innerHTML += row;
+            count += 1;
+
+
+        }
+
+        function deleteRow(data) {
+            var table = document.getElementById('mytable');
+            //count = data.length;
+            $("#mytable tr").remove(); 
+             
+            
+            for (var i = 0; i < data.length; i++) {
+                var j = i + 1;
+
+                var row = `<tr>
+                                   <td id = "id${j}">${data[i].id}</td>
+                                   <td id = "brand${j}">${data[i].brand}</td>
+                                   <td id = "model${j}">${data[i].model}</td>
+                                   
+                               </tr>`
+                table.innerHTML += row;
+            }  
+        }
+
+
+
+        // Attach a submit handler to the form
+        $("#myForm").submit(function (event) {
+
+            // Stop form from submitting normally
+            event.preventDefault();
+
+            // Get some values from elements on the page:
+            var $form = $(this),
+                ID = $form.find("input[name='id']").val(),
+                BRAND = $form.find("input[name='brand']").val(),
+                MODEL = $form.find("input[name='model']").val(),
+                url = "http://localhost:3000/update";
+
+            // Send the data using post
+            $.post(url, { Id: ID, Brand: BRAND, Model: MODEL }, function (data, status) {
+                updateTable(data);
+
+            });
+
+        });
+
+        $("#addForm").submit(function (event) {
+
+            // Stop form from submitting normally
+            event.preventDefault();
+
+            // Get some values from elements on the page:
+            var $form = $(this),
+
+                BRAND = $form.find("input[name='brand']").val(),
+                MODEL = $form.find("input[name='model']").val(),
+                url = "http://localhost:3000/add";
+            ID = count + 1;
+            // Send the data using post
+            $.post(url, { Id: ID, Brand: BRAND, Model: MODEL }, function (data, status) {
+                addRow(data);
+
+            });
+            $("#addForm").hide();
+
+        });
+
+        $("#deleteForm").submit(function (event) {
+
+            // Stop form from submitting normally
+            event.preventDefault();
+
+            // Get some values from elements on the page:
+            var $form = $(this),
+                ID = $form.find("input[name='id']").val(),
+                url = "http://localhost:3000/delete";
+
+            // Send the data using post
+            $.post(url, { Id: ID }, function (data, status) {
+                deleteRow(data);
+
+            });
+            count -= 1;
+            $("#deleteForm").hide();
+
+        });
+
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("table");
+            switching = true;
+            dir = "asc";
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+        function sortTableAsNum(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("table");
+            switching = true;
+            dir = "asc";
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    if (dir == "asc") {
+                        if (x.innerHTML > y.innerHTML) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML < y.innerHTML) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
